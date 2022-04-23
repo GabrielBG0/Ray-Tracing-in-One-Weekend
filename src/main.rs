@@ -16,18 +16,24 @@ fn write_color(color: &Color) {
     );
 }
 
-fn hit_sphere(center: &Point3, radius: f64, ray: &Ray) -> bool {
-    let oc: Vector3<f64> = ray.origin() - center;
+fn hit_sphere(center: &Point3, radius: f64, ray: &Ray) -> f64 {
+    let oc = ray.origin() - center;
     let a = ray.direction().dot(&ray.direction());
     let b = 2.0 * oc.dot(&ray.direction());
     let c = oc.dot(&oc) - radius * radius;
-    let discriminant = b * b - 4.0 * a * c;
-    discriminant > 0.0
+    let discriminant = b.powi(2) - 4.0 * a * c;
+    if discriminant < 0.0 {
+        return -1.0;
+    } else {
+        return (-b - discriminant.sqrt()) / (2.0 * a);
+    }
 }
 
 fn ray_color(r: &Ray) -> Color {
-    if hit_sphere(&Point3::new(0.0, 0.0, 1.0), 0.5, &r) {
-        return Color::new(1.0, 0.0, 0.0);
+    let t = hit_sphere(&Point3::new(0.0, 0.0, -1.0), 0.5, &r);
+    if t > 0.0 {
+        let n: Vector3<f64> = (r.at(t) - Vector3::new(0.0, 0.0, -1.0)).normalize();
+        return 0.5 * Color::new(n.x + 1.0, n.y + 1.0, n.z + 1.0);
     }
     let unity_direction: Vector3<f64> = r.direction.normalize();
     let t = 0.5 * (unity_direction.y + 1.0);
